@@ -11,6 +11,33 @@ type RoomJoinedPayload = {
   room: GameRoomClientSnapshot;
 };
 
+type StoredSession = {
+  roomCode: string;
+  playerId: string;
+  name: string;
+};
+
+const SESSION_STORAGE_KEY = 'fodinha-online-session';
+
+function saveSession(session: StoredSession) {
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+}
+
+function getStoredSession(): StoredSession | null {
+  const storedSession = localStorage.getItem(SESSION_STORAGE_KEY);
+
+  if (!storedSession) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedSession) as StoredSession;
+  } catch {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    return null;
+  }
+}
+
 export default function Home() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [room, setRoom] = useState<GameRoomClientSnapshot | null>(null);
@@ -99,6 +126,15 @@ export default function Home() {
 
     newSocket.on('connect', () => {
       console.log('Conectado ao WebSocket:', newSocket.id);
+      
+      const storedSession = getStoredSession();
+      
+      if (storedSession) {
+        newSocket.emit('room:reconnect', {
+          code: storedSession.roomCode,
+          playerId: storedSession.playerId,
+        });
+      }
     });
 
     newSocket.on('room:created', (createdRoom: GameRoomClientSnapshot) => {
@@ -113,7 +149,29 @@ export default function Home() {
       setRoom(room);
       setCreatedRoomCode(room.code);
       setRoomCodeInput(room.code);
+      setName(player.name);
       setError(null);
+
+      saveSession({
+        roomCode: room.code,
+        playerId: player.id,
+        name: player.name,
+      });
+    });
+
+    newSocket.on('room:reconnected', ({ player, room }: RoomJoinedPayload) => {
+      setPlayer(player);
+      setRoom(room);
+      setCreatedRoomCode(room.code);
+      setRoomCodeInput(room.code);
+      setName(player.name);
+      setError(null);
+
+      saveSession({
+        roomCode: room.code,
+        playerId: player.id,
+        name: player.name,
+      });
     });
 
     newSocket.on('room:updated', (updatedRoom: GameRoomClientSnapshot) => {
@@ -245,7 +303,7 @@ export default function Home() {
                   )}
 
                   <p className="mt-3 text-sm text-emerald-200">
-                    Depois de criar, entre com seu nome para virar o dono da
+                    Depois de criar, entre com seu nome para virar o host da
                     sala.
                   </p>
                 </div>
@@ -375,7 +433,7 @@ export default function Home() {
 
                   {room.status === 'LOBBY' && !currentUser?.isHost && (
                     <p className="rounded-xl bg-emerald-900/80 px-4 py-3 text-sm text-emerald-100">
-                      Aguardando o dono da sala iniciar a partida.
+                      Aguardando o host iniciar a partida.
                     </p>
                   )}
 
@@ -470,7 +528,7 @@ export default function Home() {
                       Aguardando início
                     </p>
                     <p className="mt-3 text-emerald-100">
-                      O dono da sala inicia a partida quando todos estiverem na
+                      O host inicia a partida quando todos estiverem na
                       mesa.
                     </p>
                   </>

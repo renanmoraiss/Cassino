@@ -34,6 +34,32 @@ export class GameService {
     return room.getSnapshot();
   }
 
+  reconnectRoom(
+    code: string,
+    playerId: string,
+  ): {
+    player: Player;
+    room: GameRoomClientSnapshot;
+  } {
+    if (!playerId) {
+      throw new BadRequestException('O ID do jogador é obrigatório.');
+    }
+
+    const room = this.getRoomOrThrow(code);
+    const snapshot = room.getSnapshot();
+
+    const player = snapshot.players.find((item) => item.id === playerId);
+
+    if (!player) {
+      throw new BadRequestException('Jogador não encontrado nesta sala.');
+    }
+
+    return {
+      player,
+      room: room.getClientSnapshot(player.id),
+    };
+  }
+
   getRoomForPlayer(
     code: string,
     playerId?: string | null,

@@ -35,6 +35,11 @@ type GetRoomPayload = {
   code: string;
 };
 
+type ReconnectRoomPayload = {
+  code: string;
+  playerId: string;
+};
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -74,6 +79,33 @@ export class GameGateway {
         'room:updated',
         this.gameService.getRoomForPlayer(room.code, client.data.playerId),
       );
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
+  @SubscribeMessage('room:reconnect')
+  handleReconnectRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: ReconnectRoomPayload,
+  ) {
+    try {
+      const { player, room } = this.gameService.reconnectRoom(
+        payload.code,
+        payload.playerId,
+      );
+
+      client.join(room.code);
+
+      client.data.roomCode = room.code;
+      client.data.playerId = player.id;
+
+      client.emit('room:reconnected', {
+        player,
+        room,
+      });
+
+      void this.emitRoomUpdate(room.code);
     } catch (error) {
       this.emitError(client, error);
     }

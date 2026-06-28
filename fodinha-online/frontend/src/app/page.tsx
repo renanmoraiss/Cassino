@@ -148,6 +148,15 @@ export default function Home() {
       }
     });
 
+    newSocket.on("room:left", () => {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      setRoom(null);
+      setPlayer(null);
+      setCreatedRoomCode(null);
+      setRoomCodeInput("");
+      setError(null);
+    });
+
     newSocket.on("room:created", (createdRoom: GameRoomClientSnapshot) => {
       setCreatedRoomCode(createdRoom.code);
       setRoomCodeInput(createdRoom.code);
@@ -206,6 +215,14 @@ export default function Home() {
 
     setError(null);
     socket.emit("room:create");
+  }
+
+  function handleLeaveRoom() {
+    if (!socket || !room) return;
+
+    socket.emit("room:leave", {
+      code: room.code,
+    });
   }
 
   function handleJoinRoom() {
@@ -370,9 +387,9 @@ export default function Home() {
         {player && room && (
           <section className="grid flex-1 gap-5 lg:grid-cols-[310px_1fr]">
             <aside className="flex flex-col gap-2">
-              <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-5 shadow-2xl backdrop-blur">
-                <div className="mt-3 flex items-center gap-3">
-                  <p className="text-4xl font-black">{room.code}</p>
+              <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-3 shadow-2xl backdrop-blur">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-3xl font-black">{room.code}</p>
 
                   <button
                     onClick={handleCopyRoomCode}
@@ -381,6 +398,15 @@ export default function Home() {
                     {codeCopied ? "Copiado!" : "Copiar"}
                   </button>
                 </div>
+
+                {room.status === "LOBBY" && (
+                  <button
+                    onClick={handleLeaveRoom}
+                    className="mt-3 w-full rounded-xl border border-red-300/40 bg-red-500/15 px-4 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/25"
+                  >
+                    Sair da sala
+                  </button>
+                )}
               </section>
 
               <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-3 shadow-2xl backdrop-blur">
@@ -463,7 +489,7 @@ export default function Home() {
                       </button>
 
                       {!canStartGame && (
-                        <p className="text-xs font-bold text-emerald-200">
+                        <p className="text-xs font-bold text-emerald-200 text-center">
                           A mesa precisa de pelo menos 2 jogadores.
                         </p>
                       )}

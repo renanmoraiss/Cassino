@@ -106,6 +106,29 @@ export class GameRoomState {
     this.startRound();
   }
 
+  leavePlayer(playerId: string): void {
+    if (this.status !== 'LOBBY') {
+      throw new Error('Só é possível sair da sala antes da partida começar.');
+    }
+
+    const playerExists = this.players.some((player) => player.id === playerId);
+
+    if (!playerExists) {
+      throw new Error('Jogador não encontrado nesta sala.');
+    }
+
+    this.players = this.players.filter((player) => player.id !== playerId);
+
+    if (this.hostPlayerId === playerId) {
+      this.hostPlayerId = this.players[0]?.id ?? null;
+    }
+
+    this.players = this.players.map((player, index) => ({
+      ...player,
+      seat: index + 1,
+    }));
+  }
+
   playAgain(requesterPlayerId: string): void {
     if (this.status !== 'GAME_END') {
       throw new Error('Só é possível jogar novamente após o fim da partida.');

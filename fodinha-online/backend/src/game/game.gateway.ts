@@ -35,6 +35,10 @@ type GetRoomPayload = {
   code: string;
 };
 
+type LeaveRoomPayload = {
+  code: string;
+};
+
 type ReconnectRoomPayload = {
   code: string;
   playerId: string;
@@ -79,6 +83,32 @@ export class GameGateway {
       const playerId = this.getAuthenticatedPlayerId(client);
       const room = this.gameService.playAgain(payload.code, playerId);
       void this.emitRoomUpdate(room.code);
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
+  @SubscribeMessage('room:leave')
+  handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: LeaveRoomPayload,
+  ): void {
+    try {
+      const playerId = this.getAuthenticatedPlayerId(client);
+      const roomCode = payload.code.toUpperCase();
+
+      const room = this.gameService.leaveRoom(roomCode, playerId);
+
+      client.leave(roomCode);
+      client.data.roomCode = null;
+      client.data.playerId = null;
+      client.data.createdRoomCode = null;
+
+      client.emit('room:left');
+
+      if (room) {
+        this.emitRoomUpdate(room.code);
+      }
     } catch (error) {
       this.emitError(client, error);
     }

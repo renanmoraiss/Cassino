@@ -49,6 +49,25 @@ export class GameService {
     return room.getSnapshot();
   }
 
+  leaveRoom(code: string, playerId: string): GameRoomSnapshot | null {
+    const room = this.getRoomOrThrow(code);
+
+    try {
+      room.leavePlayer(playerId);
+
+      const snapshot = room.getSnapshot();
+
+      if (snapshot.players.length === 0) {
+        this.rooms.delete(snapshot.code);
+        return null;
+      }
+
+      return snapshot;
+    } catch (error) {
+      throw this.toBadRequestException(error);
+    }
+  }
+
   reconnectRoom(
     code: string,
     playerId: string,

@@ -248,7 +248,7 @@ export class GameGateway {
           } catch (error) {
             console.error(error);
           }
-        }, 2500);
+        }, 5000);
       }
     } catch (error) {
       this.emitError(client, error);

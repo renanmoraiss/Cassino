@@ -201,6 +201,14 @@ export default function Home() {
 
     newSocket.on("game:error", (payload: { message: string }) => {
       setError(payload.message);
+
+      if (payload.message === "Sala não encontrada.") {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        setRoom(null);
+        setPlayer(null);
+        setCreatedRoomCode(null);
+        setRoomCodeInput("");
+      }
     });
 
     setSocket(newSocket);

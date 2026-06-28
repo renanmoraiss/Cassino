@@ -543,7 +543,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="absolute left-1/2 top-[43%] z-10 flex w-[min(460px,62%)] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-[2rem] border border-amber-400/30 bg-emerald-950/65 p-4 text-center shadow-2xl backdrop-blur">
+              <div className="absolute left-1/2 top-[43%] z-10 flex w-[92%] max-w-[460px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-[2rem] border border-amber-400/30 bg-emerald-950/65 p-4 text-center shadow-2xl backdrop-blur md:w-[min(460px,62%)]">
                 {error && (
                   <div className="mb-4 w-full rounded-xl border border-red-400 bg-red-950/70 px-4 py-3 text-red-100">
                     {error}
@@ -567,8 +567,18 @@ export default function Home() {
                     <p className="text-sm font-black uppercase tracking-[0.25em] text-amber-300">
                       Rodada {room.roundNumber}
                     </p>
-
                     <h2 className="mt-2 text-3xl font-black">Apostas</h2>
+                    <div className="mt-4 w-full">
+                      <p className="mb-2 text-sm font-bold text-emerald-100">
+                        Sua mão
+                      </p>
+                      
+                    <div className="flex max-w-full flex-wrap justify-center gap-2">
+                      {currentUser?.hand.map((card) => (
+                        <PlayingCard key={card.id} card={card} size="sm" />
+                      ))}
+                    </div>
+                    </div>
 
                     {isMyBidTurn ? (
                       <>
@@ -698,6 +708,7 @@ export default function Home() {
                   )}
               </div>
 
+              {room.status !== 'BIDDING' && (
               <div className="absolute bottom-2 left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-col items-center">
                 {currentUser && (
                   <div className="mb-2 rounded-xl border border-amber-400/50 bg-emerald-950/80 px-4 py-1 shadow-xl">
@@ -742,6 +753,7 @@ export default function Home() {
                   </>
                 )}
               </div>
+              )}
             </section>
           </section>
         )}

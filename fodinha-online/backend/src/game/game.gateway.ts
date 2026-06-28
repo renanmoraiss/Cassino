@@ -40,6 +40,10 @@ type ReconnectRoomPayload = {
   playerId: string;
 };
 
+type PlayAgainPayload = {
+  code: string;
+};
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -60,6 +64,20 @@ export class GameGateway {
       client.data.createdRoomCode = room.code;
 
       client.emit('room:created', room);
+      void this.emitRoomUpdate(room.code);
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
+  @SubscribeMessage('game:play-again')
+  handlePlayAgain(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: PlayAgainPayload,
+  ) {
+    try {
+      const playerId = this.getAuthenticatedPlayerId(client);
+      const room = this.gameService.playAgain(payload.code, playerId);
       void this.emitRoomUpdate(room.code);
     } catch (error) {
       this.emitError(client, error);

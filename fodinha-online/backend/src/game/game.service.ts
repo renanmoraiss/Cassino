@@ -28,6 +28,21 @@ export class GameService {
     return room.getSnapshot();
   }
 
+  playAgain(code: string, requesterPlayerId: string): GameRoomSnapshot {
+    if (!requesterPlayerId) {
+      throw new BadRequestException('O ID do jogador é obrigatório.');
+    }
+
+    const room = this.getRoomOrThrow(code);
+
+    try {
+      room.playAgain(requesterPlayerId);
+      return room.getSnapshot();
+    } catch (error) {
+      throw this.toBadRequestException(error);
+    }
+  }
+
   getRoom(code: string): GameRoomSnapshot {
     const room = this.getRoomOrThrow(code);
 

@@ -217,6 +217,14 @@ export default function Home() {
     });
   }
 
+  function handlePlayAgain() {
+    if (!socket || !room) return;
+    
+    socket.emit('game:play-again', {
+      code: room.code,
+    });
+  }
+
   function handleStartGame() {
     if (!socket || !room) return;
 
@@ -644,17 +652,30 @@ export default function Home() {
 
                 {room.status === 'GAME_END' && (
                   <>
-                    <h2 className="text-4xl font-black text-amber-300">
-                      Fim de jogo
-                    </h2>
-                    <p className="mt-3 text-2xl">
-                      Vencedor:{' '}
-                      <strong className="text-amber-300">
-                        {winner?.name ?? 'Indefinido'}
-                      </strong>
-                    </p>
-                  </>
-                )}
+                  <h2 className="text-4xl font-black text-amber-300">
+                    Fim de jogo
+                  </h2>
+                    
+                  <p className="mt-3 text-2xl">
+                    Vencedor:{' '}
+                    <strong className="text-amber-300">
+                      {winner?.name ?? 'Indefinido'}
+                    </strong>
+                  </p>
+                  
+                  {currentUser?.isHost ? (
+                    <button
+                    onClick={handlePlayAgain}
+                    className="mt-6 rounded-xl bg-amber-400 px-5 py-3 font-black text-emerald-950 transition hover:bg-amber-300">
+                      Jogar novamente
+                      </button>
+                      ) : (
+                      <p className="mt-5 rounded-xl bg-emerald-900/80 px-4 py-3 text-sm text-emerald-100">
+                        Aguardando o dono da sala iniciar uma nova partida.
+                      </p>
+                    )}
+                    </>
+                  )}
               </div>
 
               <div className="absolute bottom-2 left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-col items-center">

@@ -106,6 +106,41 @@ export class GameRoomState {
     this.startRound();
   }
 
+  playAgain(requesterPlayerId: string): void {
+    if (this.status !== 'GAME_END') {
+      throw new Error('Só é possível jogar novamente após o fim da partida.');
+    }
+
+    if (this.hostPlayerId !== requesterPlayerId) {
+      throw new Error('Apenas o dono da sala pode iniciar uma nova partida.');
+    }
+
+    this.status = 'LOBBY';
+    this.initialLives = null;
+    this.roundNumber = 0;
+    this.maxCardsInRound = null;
+    this.deck = [];
+    this.vira = null;
+    this.manilha = null;
+    this.currentBidIndex = 0;
+    this.currentTrickNumber = 0;
+    this.currentTrickPlayerIds = [];
+    this.currentTrickTurnIndex = 0;
+    this.currentTrickCards = [];
+    this.currentTrickMeltedCards = [];
+    this.lastTrickWinnerPlayerId = null;
+    this.lastTrickResult = null;
+    this.winnerPlayerId = null;
+    this.players = this.players.map((player) => ({
+      ...player,
+      lives: 0,
+      isAlive: true,
+      hand: [],
+      bid: null,
+      tricksWon: 0,
+    }));
+  }
+
   startNextRound(): void {
     if (this.status !== 'ROUND_END') {
       throw new Error(

@@ -141,6 +141,17 @@ export class GameService {
     }
   }
 
+  continueAfterTrickResult(code: string): GameRoomSnapshot {
+    const room = this.getRoomOrThrow(code);
+
+    try {
+      room.continueAfterTrickResult();
+      return room.getSnapshot();
+    } catch (error) {
+      throw this.toBadRequestException(error);
+    }
+  }
+
   placeBid(code: string, playerId: string, bid: number): GameRoomSnapshot {
     if (!playerId) {
       throw new BadRequestException('O ID do jogador é obrigatório.');

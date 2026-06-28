@@ -110,6 +110,12 @@ export default function Home() {
 
   const winner = room?.players.find((item) => item.id === room.winnerPlayerId);
 
+  const lastTrickWinner = room?.lastTrickResult?.winnerPlayerId
+    ? room.players.find(
+        (item) => item.id === room.lastTrickResult?.winnerPlayerId,
+      )
+    : null;
+
   const canStartGame = Boolean(
     room &&
     currentUser?.isHost &&
@@ -676,12 +682,31 @@ export default function Home() {
                               <p className="rounded-full bg-emerald-900 px-2 py-1 text-[10px] font-black text-emerald-100">
                                 {playedBy?.name ?? "Jogador"}
                               </p>
+
                               <PlayingCard card={playedCard.card} size="sm" />
                             </div>
                           );
                         })
                       )}
                     </div>
+
+                    {room.isShowingTrickResult && (
+                      <div className="mt-3 rounded-2xl border border-amber-400/40 bg-amber-400/15 px-4 py-3 text-center">
+                        <p className="text-sm font-black text-amber-300">
+                          {lastTrickWinner
+                            ? `${lastTrickWinner.name} fez a rodada!`
+                            : "A rodada melou!"}
+                        </p>
+
+                        {room.lastTrickResult?.winningCard && (
+                          <p className="mt-1 text-xs font-bold text-emerald-100">
+                            Carta vencedora:{" "}
+                            {room.lastTrickResult.winningCard.card.value} de{" "}
+                            {room.lastTrickResult.winningCard.card.suit}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -767,14 +792,18 @@ export default function Home() {
                             <div
                               className={[
                                 "mb-2 rounded-xl px-4 py-2 text-sm font-black shadow-xl",
-                                isMyPlayTurn
+                                room.isShowingTrickResult || isMyPlayTurn
                                   ? "bg-amber-400 text-emerald-950"
                                   : "bg-emerald-950/85 text-emerald-100",
                               ].join(" ")}
                             >
-                              {isMyPlayTurn
-                                ? "Sua vez de jogar"
-                                : "Aguardando outro jogador jogar"}
+                              {room.isShowingTrickResult
+                                ? lastTrickWinner
+                                  ? `${lastTrickWinner.name} fez a rodada`
+                                  : "A rodada melou"
+                                : isMyPlayTurn
+                                  ? "Sua vez de jogar"
+                                  : "Aguardando outro jogador jogar"}
                             </div>
                           )}
 
@@ -785,7 +814,7 @@ export default function Home() {
                                   key={card.id}
                                   card={card}
                                   size="sm"
-                                  disabled={!isMyPlayTurn}
+                                  disabled={!isMyPlayTurn || room.isShowingTrickResult}
                                   onClick={() => handlePlayCard(card.id)}
                                 />
                               ) : (

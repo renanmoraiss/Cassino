@@ -60,6 +60,7 @@ export type GameRoomClientSnapshot = {
   lastTrickWinnerPlayerId: string | null;
   lastTrickResult: LastTrickResultSnapshot | null;
   winnerPlayerId: string | null;
+  isShowingTrickResult: boolean;
 };
 
 export type JoinedPlayer = {

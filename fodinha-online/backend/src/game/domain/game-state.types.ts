@@ -57,6 +57,7 @@ export type GameRoomSnapshot = {
   lastTrickWinnerPlayerId: string | null;
   lastTrickResult: LastTrickResultSnapshot | null;
   winnerPlayerId: string | null;
+  isShowingTrickResult: boolean;
 };
 
 export type GameRoomClientSnapshot = Omit<GameRoomSnapshot, 'players'> & {

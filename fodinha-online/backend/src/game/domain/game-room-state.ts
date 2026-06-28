@@ -38,6 +38,10 @@ export class GameRoomState {
   private lastTrickResult: LastTrickResultSnapshot | null = null;
   private winnerPlayerId: string | null = null;
 
+  private isShowingTrickResult = false;
+  private nextTrickStarterPlayerId: string | null = null;
+  private shouldFinishRoundAfterTrick = false;
+
   constructor(code: string) {
     this.id = randomUUID();
     this.code = code;
@@ -80,6 +84,7 @@ export class GameRoomState {
     ) {
       throw new Error('Apenas o dono da sala pode iniciar a partida.');
     }
+
     if (this.status !== 'LOBBY') {
       throw new Error('A partida já foi iniciada.');
     }
@@ -125,7 +130,7 @@ export class GameRoomState {
 
     this.players = this.players.map((player, index) => ({
       ...player,
-      seat: index + 1,
+      seat: index,
     }));
   }
 
@@ -154,6 +159,10 @@ export class GameRoomState {
     this.lastTrickWinnerPlayerId = null;
     this.lastTrickResult = null;
     this.winnerPlayerId = null;
+    this.isShowingTrickResult = false;
+    this.nextTrickStarterPlayerId = null;
+    this.shouldFinishRoundAfterTrick = false;
+
     this.players = this.players.map((player) => ({
       ...player,
       lives: 0,
@@ -174,6 +183,36 @@ export class GameRoomState {
     this.startRound();
   }
 
+  continueAfterTrickResult(): void {
+    if (this.status !== 'PLAYING') {
+      return;
+    }
+
+    if (!this.isShowingTrickResult) {
+      return;
+    }
+
+    this.isShowingTrickResult = false;
+
+    if (this.shouldFinishRoundAfterTrick) {
+      this.shouldFinishRoundAfterTrick = false;
+      this.nextTrickStarterPlayerId = null;
+      this.finishRound();
+      return;
+    }
+
+    const starterPlayerId = this.nextTrickStarterPlayerId;
+
+    this.nextTrickStarterPlayerId = null;
+    this.shouldFinishRoundAfterTrick = false;
+
+    if (!starterPlayerId) {
+      throw new Error('Não foi possível definir quem começa a próxima rodada.');
+    }
+
+    this.startNextTrick(starterPlayerId);
+  }
+
   private startRound(): void {
     const alivePlayers = this.getAlivePlayers();
 
@@ -189,6 +228,9 @@ export class GameRoomState {
     this.lastTrickWinnerPlayerId = null;
     this.lastTrickResult = null;
     this.winnerPlayerId = null;
+    this.isShowingTrickResult = false;
+    this.nextTrickStarterPlayerId = null;
+    this.shouldFinishRoundAfterTrick = false;
 
     this.maxCardsInRound = Math.max(
       ...alivePlayers.map((player) => player.lives),
@@ -296,6 +338,10 @@ export class GameRoomState {
   }
 
   playCard(playerId: string, cardId: string): void {
+    if (this.isShowingTrickResult) {
+      throw new Error('Aguarde a próxima rodada começar.');
+    }
+
     if (this.status !== 'PLAYING') {
       throw new Error('A rodada não está na fase de jogar cartas.');
     }
@@ -376,6 +422,7 @@ export class GameRoomState {
       lastTrickWinnerPlayerId: this.lastTrickWinnerPlayerId,
       lastTrickResult: this.lastTrickResult,
       winnerPlayerId: this.winnerPlayerId,
+      isShowingTrickResult: this.isShowingTrickResult,
     };
   }
 
@@ -453,7 +500,13 @@ export class GameRoomState {
       });
     }
 
-    this.startNextTrick(result.winnerPlayerId);
+    this.isShowingTrickResult = true;
+
+    this.nextTrickStarterPlayerId =
+      result.winnerPlayerId ?? this.currentTrickPlayerIds[0] ?? null;
+
+    this.shouldFinishRoundAfterTrick =
+      this.currentTrickNumber >= this.maxCardsInRound!;
   }
 
   private finishRound(): void {
@@ -486,6 +539,10 @@ export class GameRoomState {
 
   private getCurrentTurnPlayerId(): string | null {
     if (this.status !== 'PLAYING') {
+      return null;
+    }
+
+    if (this.isShowingTrickResult) {
       return null;
     }
 

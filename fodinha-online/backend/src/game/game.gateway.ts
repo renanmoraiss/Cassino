@@ -239,6 +239,17 @@ export class GameGateway {
       );
 
       void this.emitRoomUpdate(room.code);
+
+      if (room.isShowingTrickResult) {
+        setTimeout(() => {
+          try {
+            this.gameService.continueAfterTrickResult(room.code);
+            void this.emitRoomUpdate(room.code);
+          } catch (error) {
+            console.error(error);
+          }
+        }, 2500);
+      }
     } catch (error) {
       this.emitError(client, error);
     }

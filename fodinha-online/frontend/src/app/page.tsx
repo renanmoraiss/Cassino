@@ -409,6 +409,7 @@ export default function Home() {
 
                 {room.status === "LOBBY" && (
                   <button
+                    type="button"
                     onClick={handleLeaveRoom}
                     className="mt-3 w-full rounded-xl border border-red-300/40 bg-red-500/15 px-4 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/25"
                   >

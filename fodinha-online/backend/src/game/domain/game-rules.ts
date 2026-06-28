@@ -16,8 +16,8 @@ export function getMaxCardsPerPlayer(playerCount: number): number {
   const totalCards = 40;
   const viraCards = 1;
 
-  if (playerCount < 3 || playerCount > 8) {
-    throw new Error('A mesa deve ter entre 3 e 8 jogadores.');
+  if (playerCount < 2 || playerCount > 8) {
+    throw new Error('A mesa deve ter entre 2 e 8 jogadores.');
   }
 
   return Math.floor((totalCards - viraCards) / playerCount);

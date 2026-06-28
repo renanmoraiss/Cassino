@@ -106,6 +106,11 @@ export default function Home() {
 
   const winner = room?.players.find((item) => item.id === room.winnerPlayerId);
 
+  const canStartGame = Boolean(
+    room && currentUser?.isHost && room.status === 'LOBBY' && room.players.length
+    >= 2,
+  );
+
   const manilhaCard = room?.manilha
   ? {
       id: `manilha-${room.manilha}`,
@@ -176,6 +181,7 @@ export default function Home() {
 
     newSocket.on('room:updated', (updatedRoom: GameRoomClientSnapshot) => {
       setRoom(updatedRoom);
+      setError(null);
     });
 
     newSocket.on('game:error', (payload: { message: string }) => {
@@ -431,13 +437,27 @@ export default function Home() {
 
                 <div className="mt-3 flex flex-col gap-2">
                   {room.status === 'LOBBY' && currentUser?.isHost && (
-                    <button
+                    <div className="flex flex-col gap-2">
+                      <button
                       onClick={handleStartGame}
-                      className="rounded-xl bg-amber-400 px-4 py-3 font-black text-emerald-950 transition hover:bg-amber-300"
-                    >
-                      Iniciar partida
-                    </button>
-                  )}
+                      disabled={!canStartGame}
+                      className={[
+                        'rounded-xl px-4 py-3 font-black transition',    
+                        canStartGame
+                        ? 'bg-amber-400 text-emerald-950 hover:bg-amber-300'
+                        : 'cursor-not-allowed bg-emerald-800 text-emerald-300',
+                      ].join(' ')}
+                      >
+                        Iniciar partida
+                        </button>
+                        
+                        {!canStartGame && (
+                          <p className="text-xs font-bold text-emerald-200">
+                            A mesa precisa de pelo menos 2 jogadores.
+                          </p>
+                        )}
+                        </div>
+                      )}
 
                   {room.status === 'LOBBY' && !currentUser?.isHost && (
                     <p className="rounded-xl bg-emerald-900/80 px-4 py-3 text-sm text-emerald-100">

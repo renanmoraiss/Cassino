@@ -84,8 +84,8 @@ export class GameRoomState {
       throw new Error('A partida já foi iniciada.');
     }
 
-    if (this.players.length < 3) {
-      throw new Error('A partida precisa de pelo menos 3 jogadores.');
+    if (this.players.length < 2) {
+      throw new Error('A partida precisa de pelo menos 2 jogadores.');
     }
 
     if (this.players.length > 8) {

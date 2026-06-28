@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-type CardBackSize = 'sm' | 'md';
+type CardBackSize = "sm" | "md";
 
 type CardBackProps = {
   size?: CardBackSize;
@@ -14,18 +14,18 @@ type CardBackStackProps = {
 };
 
 const SIZE_CLASSES: Record<CardBackSize, string> = {
-  sm: 'h-20 w-14 rounded-xl',
-  md: 'h-24 w-16 rounded-xl',
+  sm: "h-20 w-14 rounded-xl",
+  md: "h-24 w-16 rounded-xl",
 };
 
-export function CardBack({ size = 'sm', className = '' }: CardBackProps) {
+export function CardBack({ size = "sm", className = "" }: CardBackProps) {
   return (
     <div
       className={[
-        'relative shrink-0 overflow-hidden border-2 border-amber-100 bg-emerald-800 shadow-xl',
+        "relative shrink-0 overflow-hidden border-2 border-amber-100 bg-emerald-800 shadow-xl",
         SIZE_CLASSES[size],
         className,
-      ].join(' ')}
+      ].join(" ")}
     >
       <div className="absolute inset-1 rounded-lg border border-emerald-200/70" />
 
@@ -40,7 +40,7 @@ export function CardBack({ size = 'sm', className = '' }: CardBackProps) {
 
 export function CardBackStack({
   count,
-  size = 'sm',
+  size = "sm",
   maxVisible = 6,
 }: CardBackStackProps) {
   const visibleCards = Math.min(count, maxVisible);

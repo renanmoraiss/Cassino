@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { PlayerSeat } from '@/components/PlayerSeat';
-import { PlayingCard } from '@/components/PlayingCard';
-import type { GameRoomClientSnapshot, JoinedPlayer } from '@/types/game';
+import { useEffect, useMemo, useState } from "react";
+import { io, Socket } from "socket.io-client";
+import { PlayerSeat } from "@/components/PlayerSeat";
+import { PlayingCard } from "@/components/PlayingCard";
+import type { GameRoomClientSnapshot, JoinedPlayer } from "@/types/game";
 
 type RoomJoinedPayload = {
   player: JoinedPlayer;
@@ -17,7 +17,7 @@ type StoredSession = {
   name: string;
 };
 
-const SESSION_STORAGE_KEY = 'fodinha-online-session';
+const SESSION_STORAGE_KEY = "fodinha-online-session";
 
 function saveSession(session: StoredSession) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
@@ -43,8 +43,8 @@ export default function Home() {
   const [room, setRoom] = useState<GameRoomClientSnapshot | null>(null);
   const [player, setPlayer] = useState<JoinedPlayer | null>(null);
 
-  const [name, setName] = useState('');
-  const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [name, setName] = useState("");
+  const [roomCodeInput, setRoomCodeInput] = useState("");
   const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -59,8 +59,12 @@ export default function Home() {
 
   const topOpponents = opponents.slice(0, 3);
   const remainingOpponents = opponents.slice(3);
-  const leftOpponents = remainingOpponents.filter((_, index) => index % 2 === 0);
-  const rightOpponents = remainingOpponents.filter((_, index) => index % 2 === 1);
+  const leftOpponents = remainingOpponents.filter(
+    (_, index) => index % 2 === 0,
+  );
+  const rightOpponents = remainingOpponents.filter(
+    (_, index) => index % 2 === 1,
+  );
 
   const isMyBidTurn = Boolean(
     room && currentUser && room.currentBidPlayerId === currentUser.id,
@@ -80,7 +84,7 @@ export default function Home() {
       (_, index) => index,
     );
 
-    if (room.status !== 'BIDDING' || !isMyBidTurn) {
+    if (room.status !== "BIDDING" || !isMyBidTurn) {
       return bids;
     }
 
@@ -107,49 +111,51 @@ export default function Home() {
   const winner = room?.players.find((item) => item.id === room.winnerPlayerId);
 
   const canStartGame = Boolean(
-    room && currentUser?.isHost && room.status === 'LOBBY' && room.players.length
-    >= 2,
+    room &&
+    currentUser?.isHost &&
+    room.status === "LOBBY" &&
+    room.players.length >= 2,
   );
 
   const manilhaCard = room?.manilha
-  ? {
-      id: `manilha-${room.manilha}`,
-      value: room.manilha,
-      suit: 'paus' as const,
-    }
-  : null;
+    ? {
+        id: `manilha-${room.manilha}`,
+        value: room.manilha,
+        suit: "paus" as const,
+      }
+    : null;
 
   useEffect(() => {
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
 
     if (!socketUrl) {
-      setError('NEXT_PUBLIC_SOCKET_URL não configurada.');
+      setError("NEXT_PUBLIC_SOCKET_URL não configurada.");
       return;
     }
 
     const newSocket = io(socketUrl);
 
-    newSocket.on('connect', () => {
-      console.log('Conectado ao WebSocket:', newSocket.id);
-      
+    newSocket.on("connect", () => {
+      console.log("Conectado ao WebSocket:", newSocket.id);
+
       const storedSession = getStoredSession();
-      
+
       if (storedSession) {
-        newSocket.emit('room:reconnect', {
+        newSocket.emit("room:reconnect", {
           code: storedSession.roomCode,
           playerId: storedSession.playerId,
         });
       }
     });
 
-    newSocket.on('room:created', (createdRoom: GameRoomClientSnapshot) => {
+    newSocket.on("room:created", (createdRoom: GameRoomClientSnapshot) => {
       setCreatedRoomCode(createdRoom.code);
       setRoomCodeInput(createdRoom.code);
       setRoom(createdRoom);
       setError(null);
     });
 
-    newSocket.on('room:joined', ({ player, room }: RoomJoinedPayload) => {
+    newSocket.on("room:joined", ({ player, room }: RoomJoinedPayload) => {
       setPlayer(player);
       setRoom(room);
       setCreatedRoomCode(room.code);
@@ -164,7 +170,7 @@ export default function Home() {
       });
     });
 
-    newSocket.on('room:reconnected', ({ player, room }: RoomJoinedPayload) => {
+    newSocket.on("room:reconnected", ({ player, room }: RoomJoinedPayload) => {
       setPlayer(player);
       setRoom(room);
       setCreatedRoomCode(room.code);
@@ -179,12 +185,12 @@ export default function Home() {
       });
     });
 
-    newSocket.on('room:updated', (updatedRoom: GameRoomClientSnapshot) => {
+    newSocket.on("room:updated", (updatedRoom: GameRoomClientSnapshot) => {
       setRoom(updatedRoom);
       setError(null);
     });
 
-    newSocket.on('game:error', (payload: { message: string }) => {
+    newSocket.on("game:error", (payload: { message: string }) => {
       setError(payload.message);
     });
 
@@ -199,25 +205,25 @@ export default function Home() {
     if (!socket) return;
 
     setError(null);
-    socket.emit('room:create');
+    socket.emit("room:create");
   }
 
   function handleJoinRoom() {
     if (!socket) return;
 
     if (!name.trim()) {
-      setError('Digite seu nome.');
+      setError("Digite seu nome.");
       return;
     }
 
     if (!roomCodeInput.trim()) {
-      setError('Digite o código da sala.');
+      setError("Digite o código da sala.");
       return;
     }
 
     setError(null);
 
-    socket.emit('room:join', {
+    socket.emit("room:join", {
       code: roomCodeInput.trim().toUpperCase(),
       name: name.trim(),
     });
@@ -225,8 +231,8 @@ export default function Home() {
 
   function handlePlayAgain() {
     if (!socket || !room) return;
-    
-    socket.emit('game:play-again', {
+
+    socket.emit("game:play-again", {
       code: room.code,
     });
   }
@@ -234,7 +240,7 @@ export default function Home() {
   function handleStartGame() {
     if (!socket || !room) return;
 
-    socket.emit('game:start', {
+    socket.emit("game:start", {
       code: room.code,
     });
   }
@@ -242,7 +248,7 @@ export default function Home() {
   function handlePlaceBid(bid: number) {
     if (!socket || !room) return;
 
-    socket.emit('bid:place', {
+    socket.emit("bid:place", {
       code: room.code,
       bid,
     });
@@ -251,7 +257,7 @@ export default function Home() {
   function handlePlayCard(cardId: string) {
     if (!socket || !room) return;
 
-    socket.emit('card:play', {
+    socket.emit("card:play", {
       code: room.code,
       cardId,
     });
@@ -260,7 +266,7 @@ export default function Home() {
   function handleNextRound() {
     if (!socket || !room) return;
 
-    socket.emit('round:next', {
+    socket.emit("round:next", {
       code: room.code,
     });
   }
@@ -276,7 +282,7 @@ export default function Home() {
         setCodeCopied(false);
       }, 1500);
     } catch {
-      setError('Não foi possível copiar o código da sala.');
+      setError("Não foi possível copiar o código da sala.");
     }
   }
 
@@ -309,7 +315,7 @@ export default function Home() {
 
                   {createdRoomCode && (
                     <p className="mt-4 text-emerald-100">
-                      Sala criada:{' '}
+                      Sala criada:{" "}
                       <strong className="text-amber-300">
                         {createdRoomCode}
                       </strong>
@@ -365,7 +371,6 @@ export default function Home() {
           <section className="grid flex-1 gap-5 lg:grid-cols-[310px_1fr]">
             <aside className="flex flex-col gap-2">
               <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-5 shadow-2xl backdrop-blur">
-
                 <div className="mt-3 flex items-center gap-3">
                   <p className="text-4xl font-black">{room.code}</p>
 
@@ -373,26 +378,25 @@ export default function Home() {
                     onClick={handleCopyRoomCode}
                     className="rounded-xl bg-white px-3 py-2 text-xs font-black text-emerald-950 transition hover:bg-emerald-100"
                   >
-                    {codeCopied ? 'Copiado!' : 'Copiar'}
+                    {codeCopied ? "Copiado!" : "Copiar"}
                   </button>
                 </div>
               </section>
 
               <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-3 shadow-2xl backdrop-blur">
-
                 <div className="flex flex-col gap-2">
                   {room.players.map((roomPlayer) => (
                     <div
                       key={roomPlayer.id}
                       className={[
-                        'rounded-2xl border px-3 py-2',
+                        "rounded-2xl border px-3 py-2",
                         roomPlayer.isCurrentUser
-                          ? 'border-amber-300 bg-amber-300/10'
-                          : 'border-emerald-700 bg-emerald-900/50',
-                        !roomPlayer.isAlive && room.status !== 'LOBBY'
-                          ? 'opacity-50'
-                          : '',
-                      ].join(' ')}
+                          ? "border-amber-300 bg-amber-300/10"
+                          : "border-emerald-700 bg-emerald-900/50",
+                        !roomPlayer.isAlive && room.status !== "LOBBY"
+                          ? "opacity-50"
+                          : "",
+                      ].join(" ")}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-bold">{roomPlayer.name}</p>
@@ -412,60 +416,67 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {room.status !== 'LOBBY' && (
+                      {room.status !== "LOBBY" && (
                         <div className="mt-2 flex flex-col gap-1">
                           <div className="flex flex-wrap gap-1">
                             {roomPlayer.lives > 0 ? (
-                              Array.from({ length: roomPlayer.lives }, (_, index) => (
-                              <span key={index} className="text-base leading-none">
-                                ❤️
-                              </span>
-                              ))
-                            ) : (<span className="text-sm font-bold text-red-300">
-                              Eliminado
+                              Array.from(
+                                { length: roomPlayer.lives },
+                                (_, index) => (
+                                  <span
+                                    key={index}
+                                    className="text-base leading-none"
+                                  >
+                                    ❤️
+                                  </span>
+                                ),
+                              )
+                            ) : (
+                              <span className="text-sm font-bold text-red-300">
+                                Eliminado
                               </span>
                             )}
                           </div>
                           <p className="text-sm font-black text-amber-300">
-                            {roomPlayer.tricksWon}/{roomPlayer.bid ?? '-'}
+                            {roomPlayer.tricksWon}/{roomPlayer.bid ?? "-"}
                           </p>
-                          </div>
-                        )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
 
                 <div className="mt-3 flex flex-col gap-2">
-                  {room.status === 'LOBBY' && currentUser?.isHost && (
+                  {room.status === "LOBBY" && currentUser?.isHost && (
                     <div className="flex flex-col gap-2">
                       <button
-                      onClick={handleStartGame}
-                      disabled={!canStartGame}
-                      className={[
-                        'rounded-xl px-4 py-3 font-black transition',    
-                        canStartGame
-                        ? 'bg-amber-400 text-emerald-950 hover:bg-amber-300'
-                        : 'cursor-not-allowed bg-emerald-800 text-emerald-300',
-                      ].join(' ')}
+                        onClick={handleStartGame}
+                        disabled={!canStartGame}
+                        className={[
+                          "rounded-xl px-4 py-3 font-black transition",
+                          canStartGame
+                            ? "bg-amber-400 text-emerald-950 hover:bg-amber-300"
+                            : "cursor-not-allowed bg-emerald-800 text-emerald-300",
+                        ].join(" ")}
                       >
                         Iniciar partida
-                        </button>
-                        
-                        {!canStartGame && (
-                          <p className="text-xs font-bold text-emerald-200">
-                            A mesa precisa de pelo menos 2 jogadores.
-                          </p>
-                        )}
-                        </div>
-                      )}
+                      </button>
 
-                  {room.status === 'LOBBY' && !currentUser?.isHost && (
+                      {!canStartGame && (
+                        <p className="text-xs font-bold text-emerald-200">
+                          A mesa precisa de pelo menos 2 jogadores.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {room.status === "LOBBY" && !currentUser?.isHost && (
                     <p className="rounded-xl bg-emerald-900/80 px-4 py-3 text-sm text-emerald-100">
                       Aguardando o host iniciar a partida.
                     </p>
                   )}
 
-                  {room.status === 'ROUND_END' && (
+                  {room.status === "ROUND_END" && (
                     <button
                       onClick={handleNextRound}
                       className="rounded-xl bg-amber-400 px-4 py-3 font-black text-emerald-950 transition hover:bg-amber-300"
@@ -476,31 +487,31 @@ export default function Home() {
                 </div>
               </section>
 
-              {room.status !== 'LOBBY' && room.vira && manilhaCard && (
+              {room.status !== "LOBBY" && room.vira && manilhaCard && (
                 <section className="rounded-3xl border border-amber-400/30 bg-emerald-950/75 p-4 shadow-2xl backdrop-blur">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-2xl bg-emerald-900/70 p-3 text-center">
-                    <h2 className="mb-3 text-sm font-black uppercase tracking-[0.2em] text-amber-200">
-                      Vira
+                      <h2 className="mb-3 text-sm font-black uppercase tracking-[0.2em] text-amber-200">
+                        Vira
                       </h2>
-                      
+
                       <div className="flex justify-center">
                         <PlayingCard card={room.vira} size="sm" />
-                        </div>
-                        </div>
-                        
-                        <div className="rounded-2xl bg-emerald-900/70 p-3 text-center">
-                        <h2 className="mb-3 text-sm font-black uppercase tracking-[0.2em] text-amber-200">
-                          Manilha
-                        </h2>
-                        
-                        <div className="flex justify-center">
-                          <PlayingCard card={manilhaCard} size="sm" />
-                          </div>
-                          </div>
-                          </div>
-                          </section>
-                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-emerald-900/70 p-3 text-center">
+                      <h2 className="mb-3 text-sm font-black uppercase tracking-[0.2em] text-amber-200">
+                        Manilha
+                      </h2>
+
+                      <div className="flex justify-center">
+                        <PlayingCard card={manilhaCard} size="sm" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
             </aside>
 
             <section className="relative min-h-[500px] overflow-hidden rounded-[2rem] border border-amber-400/30 bg-[radial-gradient(circle_at_center,_#047857_0%,_#065f46_35%,_#022c22_80%)] shadow-2xl">
@@ -543,26 +554,25 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="absolute left-1/2 top-[43%] z-10 flex w-[92%] max-w-[460px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-[2rem] border border-amber-400/30 bg-emerald-950/65 p-4 text-center shadow-2xl backdrop-blur md:w-[min(460px,62%)]">
+              <div className="absolute left-1/2 top-[40%] z-10 flex w-[88%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-2xl border border-amber-400/30 bg-emerald-950/65 p-3 text-center shadow-2xl backdrop-blur md:top-[43%] md:w-[min(460px,62%)] md:rounded-[2rem] md:p-4">
                 {error && (
                   <div className="mb-4 w-full rounded-xl border border-red-400 bg-red-950/70 px-4 py-3 text-red-100">
                     {error}
                   </div>
                 )}
 
-                {room.status === 'LOBBY' && (
+                {room.status === "LOBBY" && (
                   <>
                     <p className="text-3xl font-black text-amber-300">
                       Aguardando início
                     </p>
                     <p className="mt-3 text-emerald-100">
-                      O host inicia a partida quando todos estiverem na
-                      mesa.
+                      O host inicia a partida quando todos estiverem na mesa.
                     </p>
                   </>
                 )}
 
-                {room.status === 'BIDDING' && (
+                {room.status === "BIDDING" && (
                   <>
                     <p className="text-sm font-black uppercase tracking-[0.25em] text-amber-300">
                       Rodada {room.roundNumber}
@@ -572,12 +582,12 @@ export default function Home() {
                       <p className="mb-2 text-sm font-bold text-emerald-100">
                         Sua mão
                       </p>
-                      
-                    <div className="flex max-w-full flex-wrap justify-center gap-2">
-                      {currentUser?.hand.map((card) => (
-                        <PlayingCard key={card.id} card={card} size="sm" />
-                      ))}
-                    </div>
+
+                      <div className="flex max-w-full flex-wrap justify-center gap-2">
+                        {currentUser?.hand.map((card) => (
+                          <PlayingCard key={card.id} card={card} size="sm" />
+                        ))}
+                      </div>
                     </div>
 
                     {isMyBidTurn ? (
@@ -606,17 +616,15 @@ export default function Home() {
                   </>
                 )}
 
-                {room.status === 'PLAYING' && (
+                {room.status === "PLAYING" && (
                   <>
-                    <p className="text-sm font-black uppercase tracking-[0.25em] text-amber-300">
+                    <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-300">
                       Rodada {room.currentTrickNumber}
                     </p>
 
-                    <h2 className="mt-2 text-3xl font-black">Mesa</h2>
-
-                    <div className="mt-5 flex flex-wrap justify-center gap-4">
+                    <div className="mt-3 flex flex-wrap justify-center gap-3">
                       {room.currentTrickCards.length === 0 ? (
-                        <p className="text-emerald-100">
+                        <p className="text-sm text-emerald-100">
                           Nenhuma carta jogada ainda.
                         </p>
                       ) : (
@@ -628,10 +636,10 @@ export default function Home() {
                           return (
                             <div
                               key={`${playedCard.playerId}-${playedCard.playedAt}`}
-                              className="flex flex-col items-center gap-2"
+                              className="flex flex-col items-center gap-1"
                             >
-                              <p className="rounded-full bg-emerald-900 px-3 py-1 text-xs font-black text-emerald-100">
-                                {playedBy?.name ?? 'Jogador'}
+                              <p className="rounded-full bg-emerald-900 px-2 py-1 text-[10px] font-black text-emerald-100">
+                                {playedBy?.name ?? "Jogador"}
                               </p>
                               <PlayingCard card={playedCard.card} size="sm" />
                             </div>
@@ -639,20 +647,10 @@ export default function Home() {
                         })
                       )}
                     </div>
-
-                    {isMyPlayTurn ? (
-                      <p className="mt-5 font-bold text-amber-300">
-                        Sua vez de jogar.
-                      </p>
-                    ) : (
-                      <p className="mt-5 text-emerald-100">
-                        Aguardando outro jogador jogar...
-                      </p>
-                    )}
                   </>
                 )}
 
-                {room.status === 'ROUND_END' && (
+                {room.status === "ROUND_END" && (
                   <>
                     <h2 className="text-3xl font-black text-amber-300">
                       Resultado da rodada
@@ -666,7 +664,7 @@ export default function Home() {
                         >
                           <h3 className="font-black">{roomPlayer.name}</h3>
                           <p className="mt-2 text-sm text-emerald-100">
-                            Apostou: {roomPlayer.bid ?? '-'}
+                            Apostou: {roomPlayer.bid ?? "-"}
                           </p>
                           <p className="text-sm text-emerald-100">
                             Fez: {roomPlayer.tricksWon}
@@ -680,79 +678,101 @@ export default function Home() {
                   </>
                 )}
 
-                {room.status === 'GAME_END' && (
+                {room.status === "GAME_END" && (
                   <>
-                  <h2 className="text-4xl font-black text-amber-300">
-                    Fim de jogo
-                  </h2>
-                    
-                  <p className="mt-3 text-2xl">
-                    Vencedor:{' '}
-                    <strong className="text-amber-300">
-                      {winner?.name ?? 'Indefinido'}
-                    </strong>
-                  </p>
-                  
-                  {currentUser?.isHost ? (
-                    <button
-                    onClick={handlePlayAgain}
-                    className="mt-6 rounded-xl bg-amber-400 px-5 py-3 font-black text-emerald-950 transition hover:bg-amber-300">
-                      Jogar novamente
+                    <h2 className="text-4xl font-black text-amber-300">
+                      Fim de jogo
+                    </h2>
+
+                    <p className="mt-3 text-2xl">
+                      Vencedor:{" "}
+                      <strong className="text-amber-300">
+                        {winner?.name ?? "Indefinido"}
+                      </strong>
+                    </p>
+
+                    {currentUser?.isHost ? (
+                      <button
+                        onClick={handlePlayAgain}
+                        className="mt-6 rounded-xl bg-amber-400 px-5 py-3 font-black text-emerald-950 transition hover:bg-amber-300"
+                      >
+                        Jogar novamente
                       </button>
-                      ) : (
+                    ) : (
                       <p className="mt-5 rounded-xl bg-emerald-900/80 px-4 py-3 text-sm text-emerald-100">
                         Aguardando o dono da sala iniciar uma nova partida.
                       </p>
                     )}
-                    </>
-                  )}
-              </div>
-
-              {room.status !== 'BIDDING' && (
-              <div className="absolute bottom-2 left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-col items-center">
-                {currentUser && (
-                  <div className="mb-2 rounded-xl border border-amber-400/50 bg-emerald-950/80 px-4 py-1 shadow-xl">
-                    <p className="font-black text-amber-300">
-                      {currentUser.name}
-                      {currentUser.isHost ? ' (host)' : ''}
-                    </p>
-                  </div>
-                )}
-
-                {room.status === 'LOBBY' ? (
-                  <div className="rounded-2xl bg-emerald-950/70 px-5 py-4 text-center">
-                    <p className="text-emerald-100">
-                      Você está na mesa. Aguarde o início da partida.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {currentUser && currentUser.hand.length > 0 ? (
-                      <div className="flex max-w-full flex-wrap justify-center gap-3">
-                        {currentUser.hand.map((card) =>
-                          room.status === 'PLAYING' ? (
-                            <PlayingCard
-                              key={card.id}
-                              card={card}
-                              size="md"
-                              disabled={!isMyPlayTurn}
-                              onClick={() => handlePlayCard(card.id)}
-                            />
-                          ) : (
-                            <PlayingCard key={card.id} card={card} size="md" />
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl bg-emerald-950/70 px-5 py-4 text-center">
-                        <p className="text-emerald-100">
-                          Você está sem cartas nesta rodada.
-                        </p>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
+
+              {room.status !== "BIDDING" && (
+                <div className="absolute bottom-2 left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-col items-center">
+                  {currentUser && (
+                    <div className="mb-2 rounded-xl border border-amber-400/50 bg-emerald-950/80 px-4 py-1 shadow-xl">
+                      <p className="font-black text-amber-300">
+                        {currentUser.name}
+                        {currentUser.isHost ? " (host)" : ""}
+                      </p>
+                    </div>
+                  )}
+
+                  {room.status === "LOBBY" ? (
+                    <div className="rounded-2xl bg-emerald-950/70 px-5 py-4 text-center">
+                      <p className="text-emerald-100">
+                        Você está na mesa. Aguarde o início da partida.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {currentUser && currentUser.hand.length > 0 ? (
+                        <>
+                          {room.status === "PLAYING" && (
+                            <div
+                              className={[
+                                "mb-2 rounded-xl px-4 py-2 text-sm font-black shadow-xl",
+                                isMyPlayTurn
+                                  ? "bg-amber-400 text-emerald-950"
+                                  : "bg-emerald-950/85 text-emerald-100",
+                              ].join(" ")}
+                            >
+                              {isMyPlayTurn
+                                ? "Sua vez de jogar"
+                                : "Aguardando outro jogador jogar"}
+                            </div>
+                          )}
+
+                          <div className="flex max-w-full flex-wrap justify-center gap-2">
+                            {currentUser.hand.map((card) =>
+                              room.status === "PLAYING" ? (
+                                <PlayingCard
+                                  key={card.id}
+                                  card={card}
+                                  size="sm"
+                                  disabled={!isMyPlayTurn}
+                                  onClick={() => handlePlayCard(card.id)}
+                                />
+                              ) : (
+                                <PlayingCard
+                                  key={card.id}
+                                  card={card}
+                                  size="sm"
+                                />
+                              ),
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="rounded-2xl bg-emerald-950/70 px-5 py-4 text-center">
+                          <p className="text-emerald-100">
+                            Você está sem cartas nesta rodada.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </section>
           </section>

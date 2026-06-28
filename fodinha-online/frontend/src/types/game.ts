@@ -1,16 +1,7 @@
 export type CardValue =
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | 'Q'
-  | 'J'
-  | 'K'
-  | 'A'
-  | '2'
-  | '3';
+  "4" | "5" | "6" | "7" | "Q" | "J" | "K" | "A" | "2" | "3";
 
-export type CardSuit = 'ouros' | 'espadas' | 'copas' | 'paus';
+export type CardSuit = "ouros" | "espadas" | "copas" | "paus";
 
 export type Card = {
   id: string;
@@ -19,11 +10,7 @@ export type Card = {
 };
 
 export type RoomStatus =
-  | 'LOBBY'
-  | 'BIDDING'
-  | 'PLAYING'
-  | 'ROUND_END'
-  | 'GAME_END';
+  "LOBBY" | "BIDDING" | "PLAYING" | "ROUND_END" | "GAME_END";
 
 export type PlayerClientSnapshot = {
   id: string;

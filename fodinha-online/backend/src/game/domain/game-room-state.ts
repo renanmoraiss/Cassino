@@ -28,6 +28,7 @@ export class GameRoomState {
   private manilha: CardValue | null = null;
 
   private currentBidIndex = 0;
+  private currentBidPlayerIds: string[] = [];
 
   private currentTrickNumber = 0;
   private currentTrickPlayerIds: string[] = [];
@@ -161,6 +162,7 @@ export class GameRoomState {
     this.vira = null;
     this.manilha = null;
     this.currentBidIndex = 0;
+    this.currentBidPlayerIds = [];
     this.currentTrickNumber = 0;
     this.currentTrickPlayerIds = [];
     this.currentTrickTurnIndex = 0;
@@ -230,6 +232,14 @@ export class GameRoomState {
     this.status = 'BIDDING';
     this.currentBidIndex = 0;
 
+    const bidStartIndex = (this.roundNumber - 1) % alivePlayers.length;
+    const bidOrder = [
+      ...alivePlayers.slice(bidStartIndex),
+      ...alivePlayers.slice(0, bidStartIndex),
+    ];
+
+    this.currentBidPlayerIds = bidOrder.map((player) => player.id);
+
     this.currentTrickNumber = 0;
     this.currentTrickPlayerIds = [];
     this.currentTrickTurnIndex = 0;
@@ -291,8 +301,11 @@ export class GameRoomState {
       throw new Error('A rodada não está na fase de apostas.');
     }
 
-    const alivePlayers = this.getAlivePlayers();
-    const currentPlayer = alivePlayers[this.currentBidIndex];
+    const currentBidPlayerId = this.currentBidPlayerIds[this.currentBidIndex];
+
+    const currentPlayer = this.players.find(
+      (player) => player.id === currentBidPlayerId && player.isAlive,
+    );
 
     if (!currentPlayer) {
       throw new Error('Não há jogador atual para apostar.');
@@ -312,12 +325,18 @@ export class GameRoomState {
       );
     }
 
-    const isLastBidder = this.currentBidIndex === alivePlayers.length - 1;
+    const isLastBidder =
+      this.currentBidIndex === this.currentBidPlayerIds.length - 1;
 
     if (isLastBidder) {
-      const previousBids = alivePlayers
-        .filter((player) => player.id !== playerId)
-        .map((player) => player.bid)
+      const previousBids = this.currentBidPlayerIds
+        .filter((currentPlayerId) => currentPlayerId !== playerId)
+        .map((currentPlayerId) => {
+          const player = this.players.find(
+            (item) => item.id === currentPlayerId,
+          );
+          return player?.bid ?? null;
+        })
         .filter((value): value is number => value !== null);
 
       validateLastBid({
@@ -340,7 +359,7 @@ export class GameRoomState {
 
     if (isLastBidder) {
       this.status = 'PLAYING';
-      this.startNextTrick();
+      this.startNextTrick(this.currentBidPlayerIds[0]);
       return;
     }
 
@@ -409,9 +428,14 @@ export class GameRoomState {
   }
 
   getSnapshot(): GameRoomSnapshot {
-    const alivePlayers = this.getAlivePlayers();
-    const currentBidPlayer =
-      this.status === 'BIDDING' ? alivePlayers[this.currentBidIndex] : null;
+    const currentBidPlayerId =
+      this.status === 'BIDDING'
+        ? this.currentBidPlayerIds[this.currentBidIndex]
+        : null;
+
+    const currentBidPlayer = currentBidPlayerId
+      ? this.players.find((player) => player.id === currentBidPlayerId)
+      : null;
 
     return {
       id: this.id,

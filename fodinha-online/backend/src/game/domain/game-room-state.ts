@@ -56,9 +56,19 @@ export class GameRoomState {
       throw new Error('A sala já possui o máximo de 8 jogadores.');
     }
 
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      throw new Error('Digite um nome válido.');
+    }
+
+    if (trimmedName.length > 12) {
+      throw new Error('O nome pode ter no máximo 12 caracteres.');
+    }
+
     const player: Player = {
       id: randomUUID(),
-      name,
+      name: trimmedName,
       seat: this.players.length,
       lives: 0,
       isAlive: true,

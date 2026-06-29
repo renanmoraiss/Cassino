@@ -264,6 +264,11 @@ export default function Home() {
       return;
     }
 
+    if (name.trim().length > 12) {
+      setError("O nome pode ter no máximo 12 caracteres.");
+      return;
+    }
+
     if (!roomCodeInput.trim()) {
       setError("Digite o código da sala.");
       return;
@@ -396,6 +401,7 @@ export default function Home() {
                   <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
+                    maxLength={12}
                     placeholder="Seu nome"
                     className="rounded-xl border border-emerald-700 bg-emerald-950 px-4 py-3 outline-none placeholder:text-emerald-400 focus:border-amber-300"
                   />

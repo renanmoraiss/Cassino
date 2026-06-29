@@ -48,6 +48,7 @@ export default function Home() {
   const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const currentUser = useMemo(() => {
     return room?.players.find((item) => item.isCurrentUser) ?? null;
@@ -142,7 +143,8 @@ export default function Home() {
     const newSocket = io(socketUrl);
 
     newSocket.on("connect", () => {
-      console.log("Conectado ao WebSocket:", newSocket.id);
+      setIsSocketConnected(true);
+      setError(null);
 
       const storedSession = getStoredSession();
 
@@ -152,6 +154,15 @@ export default function Home() {
           playerId: storedSession.playerId,
         });
       }
+    });
+
+    newSocket.on("disconnect", () => {
+      setIsSocketConnected(false);
+    });
+
+    newSocket.on("connect_error", () => {
+      setIsSocketConnected(false);
+      setError("Conectando ao servidor. Aguarde alguns segundos...");
     });
 
     newSocket.on("room:left", () => {
@@ -225,7 +236,10 @@ export default function Home() {
   }, []);
 
   function handleCreateRoom() {
-    if (!socket) return;
+    if (!socket || !isSocketConnected) {
+      setError("Conectando ao servidor. Aguarde alguns segundos...");
+      return;
+    }
 
     setError(null);
     socket.emit("room:create");
@@ -240,7 +254,10 @@ export default function Home() {
   }
 
   function handleJoinRoom() {
-    if (!socket) return;
+    if (!socket || !isSocketConnected) {
+      setError("Conectando ao servidor. Aguarde alguns segundos...");
+      return;
+    }
 
     if (!name.trim()) {
       setError("Digite seu nome.");
@@ -339,9 +356,15 @@ export default function Home() {
                 <div className="mt-8">
                   <button
                     onClick={handleCreateRoom}
-                    className="rounded-xl bg-amber-400 px-5 py-3 font-bold text-emerald-950 transition hover:bg-amber-300"
+                    disabled={!isSocketConnected}
+                    className={[
+                      "rounded-xl px-5 py-3 font-bold transition",
+                      isSocketConnected
+                        ? "bg-amber-400 text-emerald-950 hover:bg-amber-300"
+                        : "cursor-not-allowed bg-emerald-800 text-emerald-300",
+                    ].join(" ")}
                   >
-                    Criar nova sala
+                    {isSocketConnected ? "Criar nova sala" : "Conectando..."}
                   </button>
 
                   {createdRoomCode && (
@@ -388,9 +411,15 @@ export default function Home() {
 
                   <button
                     onClick={handleJoinRoom}
-                    className="rounded-xl bg-white px-5 py-3 font-bold text-emerald-950 transition hover:bg-emerald-100"
+                    disabled={!isSocketConnected}
+                    className={[
+                      "rounded-xl px-5 py-3 font-bold transition",
+                      isSocketConnected
+                        ? "bg-white text-emerald-950 hover:bg-emerald-100"
+                        : "cursor-not-allowed bg-emerald-800 text-emerald-300",
+                    ].join(" ")}
                   >
-                    Entrar
+                    {isSocketConnected ? "Entrar" : "Conectando..."}
                   </button>
                 </div>
               </div>
@@ -814,7 +843,9 @@ export default function Home() {
                                   key={card.id}
                                   card={card}
                                   size="sm"
-                                  disabled={!isMyPlayTurn || room.isShowingTrickResult}
+                                  disabled={
+                                    !isMyPlayTurn || room.isShowingTrickResult
+                                  }
                                   onClick={() => handlePlayCard(card.id)}
                                 />
                               ) : (
